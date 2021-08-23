@@ -2,7 +2,8 @@
 SDSFM
 
 Scan all of your files in the directory and subdirectory. 
-File name and file content will be hashed.
+File name and file content will be hashed.<p>
+  saved in SDSFM.db, all contents are hashed and salted.
 
 ## Report File Change
 <b>New</b> files. <p>
