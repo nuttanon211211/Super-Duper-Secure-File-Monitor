@@ -12,3 +12,6 @@ File that <b>deleted</b> since last time.
 ### Generate Security score: max < 100 points
 
 Program Speed : O(n^2)                                      
+
+Demo                                      
+![alt text](https://raw.githubusercontent.com/nuttanon211211/Super-Duper-Secure-File-Monitor/main/demo.png)
