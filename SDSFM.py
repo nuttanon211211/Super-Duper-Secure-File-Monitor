@@ -4,6 +4,12 @@ import hashlib
 import os
 import random
 
+
+
+#O (f**2)
+
+
+STATIC_SALT = 'salt7319'
 #Define Functions
 #DB
 #Create Database
@@ -13,7 +19,7 @@ def createDB():
     #Create table Encodings
     with con:
         cur = con.cursor()    
-        cur.execute("CREATE TABLE Files(NameHashed TEXT, NameSalt TEXT, ContentHashed TEXT, ContentSalt TEXT)")
+        cur.execute("CREATE TABLE Files(NameHashed TEXT, ContentHashed TEXT, ContentSalt TEXT)")
         
     cur.close()
     con.close()
@@ -36,14 +42,20 @@ def getData():
     return get_array
 
 #ADD Data to DB
-def addData(nHashed,nSalt,cHashed,cSalt):
-    sqlite_insert_query = """INSERT INTO Files VALUES (?,?,?,?)"""
+def addData(nHashed,cHashed,cSalt):
+    sqlite_insert_query = """INSERT INTO Files VALUES (?,?,?)"""
     
     con = lite.connect("SDSFM.db")
-    con.execute(sqlite_insert_query, (nHashed,nSalt,cHashed,cSalt))
+    con.execute(sqlite_insert_query, (nHashed,cHashed,cSalt))
     con.commit()
     #print("Encoding inserted successfully as a BLOB into a table")
+    #con.close()
+
+#Close connection
+def closeDB():
+    con = lite.connect("SDSFM.db")
     con.close()
+
  
 #Delete data from the DB  
 def deleteData(nHashed):
@@ -126,18 +138,18 @@ def getAllFiles(path):
 #nameData = getData()
 #Check file [name] exits in the dir 
 def checkfile(text,name_data):
-    all_salt = []
-    for e in name_data:
-        all_salt.append(e[1])
+    #all_salt = [STATIC_SALT]
+    #for e in name_data:
+    #all_salt.append(STATIC_SALT)
     #print(all_salt)
     
     target = hashlib.sha256(text.encode('utf-8')).hexdigest()
     for e in name_data:
-        for salt in all_salt:
-            target2 = target+salt
-            if e[0] == hashlib.sha256( target2.encode('utf-8') ).hexdigest():
-                return True, e[0] , e[2] , e[3]
-                # return Found, hashed name, hashed data, salt data
+        #for salt in all_salt:
+        target2 = target+STATIC_SALT
+        if e[0] == hashlib.sha256( target2.encode('utf-8') ).hexdigest():
+            return True, e[0] , e[1] , e[2]
+            # return Found, hashed name, hashed data, salt data
     return False , None , None, None
     #file not found
     
@@ -168,15 +180,14 @@ def createReportDict(nameData):
 #Generate data from file name. 
 def generateData(filename):
     m=hashlib.sha256(filename.encode('utf-8')).hexdigest()
-    salt = randomText()
-    salted = m + salt
+    salted = m + STATIC_SALT
     hashed=hashlib.sha256(salted.encode('utf-8')).hexdigest()
     #out.append([hashed,salt])
     m2 = getFileHash(filename)
     salt2 = randomText()
     salted2 = m2 + salt2
     hashed2 = hashlib.sha256(salted2.encode('utf-8')).hexdigest()
-    return [hashed,salt,hashed2,salt2]
+    return [hashed,hashed2,salt2]
     
     
 #end the functions
@@ -245,11 +256,12 @@ print("Security Score:",100 - 100*(analytics["Changed"]+analytics["New"]+analyti
 #Regen DB
 random.shuffle(allFiles)
 for filename in allFiles:
-    try:
-        datas = generateData(filename)
-        addData(datas[0],datas[1],datas[2],datas[3])
-    except:
-        print(filename,"Cannot be added")
+    #try:
+    datas = generateData(filename)
+    addData(datas[0],datas[1],datas[2])
+    #except:
+    #    print(filename,"Cannot be added")
+closeDB()
         
    
    
